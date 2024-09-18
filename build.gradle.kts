@@ -21,11 +21,41 @@ plugins {
   id("com.ibm.wala.gradle.eclipse-maven-central")
   id("com.ibm.wala.gradle.maven-eclipse-jsdt")
   id("com.ibm.wala.gradle.project")
+  `java-library`
 }
 
 repositories {
   // to get the google-java-format jar and dependencies
   mavenCentral()
+}
+
+tasks.register<Jar>("sourceJar") {
+    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
+}
+
+tasks.register<Jar>("javadocJar") {
+    from(tasks["javadoc"])
+    archiveClassifier.set("javadoc")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+	    from(components["java"])
+
+            groupId = "amordahl" // Replace with your group ID
+            artifactId = "com.ibm.wala.core" // Replace with your artifact ID
+            version = "1.6.6" // Replace with your version
+
+            // You can add sources and javadoc artifacts if needed
+            artifact(tasks["sourceJar"])
+            artifact(tasks["javadocJar"])
+        }
+    }
+    repositories {
+        mavenLocal() // Publishes to the local Maven repository (~/.m2/repository)
+    }
 }
 
 val osName: String by extra(System.getProperty("os.name"))
@@ -43,7 +73,7 @@ JavaVersion.current().let {
 //  common Java setup shared by multiple projects
 //
 
-group = name
+group = "amordahl"
 
 version = property("VERSION_NAME") as String
 
